@@ -1,0 +1,8 @@
+{
+  "clientId": "",
+  "clientSecret": "",
+  "dbHost": "localhost",
+  "dbUser": "localhost",
+  "dbPassword": "password",
+  "dbName": "test"
+}
