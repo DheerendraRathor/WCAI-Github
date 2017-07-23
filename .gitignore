@@ -123,3 +123,5 @@ fabric.properties
 ### Custom User specific
 config.json
 *.log
+.virtualgo
+.idea/inspectionProfiles/
