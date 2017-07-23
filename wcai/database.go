@@ -18,12 +18,17 @@ func (OnlineProfile) TableName() string {
 
 type GithubRepository struct {
 	BaseModel
-	Name     string
-	Stars    int
-	Forks    int
-	IsForked bool
-	Views    int
-	Clones   int
+	Name               string
+	Owner              string
+	Stars              int
+	Forks              int
+	IsForked           bool
+	Views              int
+	Clones             int
+	ForkProcessed      bool `gorm:"column:_fork_processed"`
+	ViewsProcessed     bool
+	ClonesProcessed    bool
+	LanguagesProcessed bool `gorm:"column:_languages_processed"`
 }
 
 func (GithubRepository) TableName() string {
@@ -44,9 +49,9 @@ func (GithubRepositoryOwnership) TableName() string {
 
 type GithubLanguage struct {
 	BaseModel
-	RepoId uint
+	RepoId int
 	Name   string
-	Count  uint `gorm:"default:0"`
+	Count  int
 }
 
 func (GithubLanguage) TableName() string {
@@ -55,8 +60,7 @@ func (GithubLanguage) TableName() string {
 
 type GithubTopic struct {
 	BaseModel
-	RepoId uint
-	UserId uint
+	RepoId int
 	Name   string
 }
 

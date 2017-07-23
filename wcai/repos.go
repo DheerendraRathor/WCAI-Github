@@ -28,13 +28,21 @@ func GetRepositoriesForUser(client github.Client, user string) ([]*github.Reposi
 	return repos, lastErr
 }
 
+func GetRepositoryForUser(client github.Client, user string, repo string) (*github.Repository, error) {
+	repository, _, err := client.Repositories.Get(context.Background(), user, repo)
+	return repository, err
+}
+
 func GetLanguagesForRepository(client github.Client, user string, repo string) (map[string]int, *github.Response, error) {
 	return client.Repositories.ListLanguages(context.Background(), user, repo)
 }
 
-func IsRepositoryForked(client github.Client, user string, repo string) bool {
-	repository, _, _ := client.Repositories.Get(context.Background(), user, repo)
+func IsRepositoryForked(repository *github.Repository) bool {
 	return repository.Source == nil
+}
+
+func GetTopicsForRepository(repository *github.Repository) []string {
+	return repository.Topics
 }
 
 func GetRepositoryCloneCount(client github.Client, user string, repo string) int {
@@ -45,4 +53,9 @@ func GetRepositoryCloneCount(client github.Client, user string, repo string) int
 func GetRepositoryViewsCount(client github.Client, user string, repo string) int {
 	traffic, _, _ := client.Repositories.ListTrafficViews(context.Background(), user, repo, &github.TrafficBreakdownOptions{})
 	return traffic.GetUniques()
+}
+
+func GetCoreRateLimits(client github.Client) *github.Rate {
+	limits, _, _ := client.RateLimits(context.Background())
+	return limits.Core
 }

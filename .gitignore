@@ -125,3 +125,5 @@ config.json
 *.log
 .virtualgo
 .idea/inspectionProfiles/
+.idea/misc.xml
+.idea/codeStyleSettings.xml
