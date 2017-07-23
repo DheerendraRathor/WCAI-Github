@@ -127,3 +127,4 @@ config.json
 .idea/inspectionProfiles/
 .idea/misc.xml
 .idea/codeStyleSettings.xml
+vendor/

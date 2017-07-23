@@ -10,9 +10,16 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var config configuration.WcaiConfiguration
+
+var (
+	updateFlag = kingpin.Flag("update", "Update mode").Default("nil").Enum(
+		"nil", "fetch", "fork", "lang", "clones", "views", "limit",
+	)
+)
 
 func GetGithubClient() *github.Client {
 	myHttpClient := &http.Client{
@@ -26,6 +33,7 @@ func GetGithubClient() *github.Client {
 }
 
 func main() {
+	kingpin.Parse()
 	config = configuration.GetConfiguration()
 
 	connString := fmt.Sprintf("host=%s user=%s dbname=%s sslmode=require password=%s",
@@ -36,12 +44,21 @@ func main() {
 
 	gc := *GetGithubClient()
 
-	//wcai.ListRepositoriesAndPushToDb(gc, db)
-	//wcai.UpdateRepositoryForkedStatusAndTopics(gc, db)
-	//wcai.UpdateRepositoryLanguages(gc, db)
-
-	limits := wcai.GetCoreRateLimits(gc)
-
-	fmt.Println(limits.Limit, limits.Remaining, limits.Reset)
-
+	switch *updateFlag {
+	case "fetch":
+		wcai.ListRepositoriesAndPushToDb(gc, db)
+	case "fork":
+		wcai.UpdateRepositoryForkedStatusAndTopics(gc, db)
+	case "lang":
+		wcai.UpdateRepositoryLanguages(gc, db)
+	case "clones":
+		wcai.UpdateRepositoryClones(gc, db)
+	case "views":
+		wcai.UpdateRepositoryViews(gc, db)
+	case "limit":
+		limits := wcai.GetCoreRateLimits(gc)
+		fmt.Println(limits.Limit, limits.Remaining, limits.Reset)
+	default:
+		kingpin.Usage()
+	}
 }

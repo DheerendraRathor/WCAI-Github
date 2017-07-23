@@ -103,11 +103,7 @@ func updateRepoForkStatusAndTopics(repo GithubRepository, fullRepo *github.Repos
 }
 
 func UpdateRepositoryForkedStatusAndTopics(gc github.Client, db *gorm.DB) {
-	var repositories []GithubRepository
-	limits := GetCoreRateLimits(gc)
-	fmt.Println("Remaining Limit:", limits.Remaining)
-
-	db.Where("owner <> ? and _fork_processed = ?", "", false).Limit(limits.Remaining).Find(&repositories)
+	repositories := getRepositories(gc, db, "_fork_processed", false)
 
 	var wg sync.WaitGroup
 	for _, repo := range repositories {
@@ -140,11 +136,7 @@ func updateRepositoryLanguages(db *gorm.DB, repo GithubRepository, languages map
 }
 
 func UpdateRepositoryLanguages(gc github.Client, db *gorm.DB) {
-	var repositories []GithubRepository
-	limits := GetCoreRateLimits(gc)
-	fmt.Println("Remaining Limit:", limits.Remaining)
-
-	db.Where("owner <> ? and _languages_processed = ?", "", false).Limit(limits.Remaining).Find(&repositories)
+	repositories := getRepositories(gc, db, "_languages_processed", false)
 
 	var wg sync.WaitGroup
 	for _, repo := range repositories {
@@ -158,4 +150,59 @@ func UpdateRepositoryLanguages(gc github.Client, db *gorm.DB) {
 		go updateRepositoryLanguages(db, repo, languages, &wg)
 	}
 
+	wg.Wait()
+}
+
+func updateRepositoryClones(db *gorm.DB, repo GithubRepository, clones int, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	db.Model(&repo).Update("clones", clones)
+	fmt.Printf("Done for repo: %s/%s\n", repo.Owner, repo.Name)
+}
+
+func UpdateRepositoryClones(gc github.Client, db *gorm.DB) {
+	repositories := getRepositories(gc, db, "_clones_processed", false)
+
+	var wg sync.WaitGroup
+	for _, repo := range repositories {
+		clones := GetRepositoryCloneCount(gc, repo.Owner, repo.Name)
+
+		wg.Add(1)
+		go updateRepositoryClones(db, repo, clones, &wg)
+	}
+
+	wg.Wait()
+}
+
+func updateRepositoryViews(db *gorm.DB, repo GithubRepository, views int, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	db.Model(&repo).Update("views", views)
+	fmt.Printf("Done for repo: %s/%s\n", repo.Owner, repo.Name)
+}
+
+func UpdateRepositoryViews(gc github.Client, db *gorm.DB) {
+	repositories := getRepositories(gc, db, "_views_processed", false)
+
+	var wg sync.WaitGroup
+	for _, repo := range repositories {
+		views := GetRepositoryViewsCount(gc, repo.Owner, repo.Name)
+
+		wg.Add(1)
+		go updateRepositoryViews(db, repo, views, &wg)
+	}
+
+	wg.Wait()
+}
+
+func getRepositories(gc github.Client, db *gorm.DB, where string, value bool) []GithubRepository {
+	var repositories []GithubRepository
+	limits := GetCoreRateLimits(gc)
+	fmt.Println("Remaining Limit:", limits.Remaining)
+
+	if limits.Remaining > 0 {
+		db.Where(fmt.Sprintf("owner <> ? and %s = ?", where), "", value).Limit(limits.Remaining).Find(&repositories)
+	}
+
+	return repositories
 }
