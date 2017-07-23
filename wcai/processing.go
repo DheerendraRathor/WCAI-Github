@@ -199,9 +199,10 @@ func getRepositories(gc github.Client, db *gorm.DB, where string, value bool) []
 	var repositories []GithubRepository
 	limits := GetCoreRateLimits(gc)
 	fmt.Println("Remaining Limit:", limits.Remaining)
+	fmt.Println("Reset time:", limits.Reset)
 
 	if limits.Remaining > 0 {
-		db.Where(fmt.Sprintf("owner <> ? and %s = ?", where), "", value).Limit(limits.Remaining).Find(&repositories)
+		db.Where(fmt.Sprintf("owner <> ? and %s = ? and is_forked = ?", where), "", value, false).Limit(limits.Remaining).Find(&repositories)
 	}
 
 	return repositories
