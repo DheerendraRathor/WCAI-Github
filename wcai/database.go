@@ -26,8 +26,8 @@ type GithubRepository struct {
 	Views              int
 	Clones             int
 	ForkProcessed      bool `gorm:"column:_fork_processed"`
-	ViewsProcessed     bool
-	ClonesProcessed    bool
+	ViewsProcessed     bool `gorm:"column:_views_processed"`
+	ClonesProcessed    bool `gorm:"column:_clones_processed"`
 	LanguagesProcessed bool `gorm:"column:_languages_processed"`
 }
 

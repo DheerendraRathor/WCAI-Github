@@ -163,7 +163,9 @@ func updateRepositoryClones(db *gorm.DB, repo GithubRepository, clones int, wg *
 		"_clones_processed": true,
 	}
 
+	db.LogMode(true)
 	db.Model(&repo).Updates(updates)
+	db.LogMode(false)
 	fmt.Printf("Done for repo: %s/%s\n", repo.Owner, repo.Name)
 }
 
