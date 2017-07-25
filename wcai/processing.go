@@ -131,6 +131,8 @@ func updateRepositoryLanguages(db *gorm.DB, repo GithubRepository, languages map
 		})
 	}
 
+	tx.Model(&repo).Update("_languages_processed", true)
+
 	tx.Commit()
 	fmt.Printf("Done for repo: %s/%s\n", repo.Owner, repo.Name)
 }
@@ -156,7 +158,12 @@ func UpdateRepositoryLanguages(gc github.Client, db *gorm.DB) {
 func updateRepositoryClones(db *gorm.DB, repo GithubRepository, clones int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	db.Model(&repo).Update("clones", clones)
+	updates := map[string]interface{}{
+		"clones":            clones,
+		"_clones_processed": true,
+	}
+
+	db.Model(&repo).Updates(updates)
 	fmt.Printf("Done for repo: %s/%s\n", repo.Owner, repo.Name)
 }
 
@@ -177,7 +184,12 @@ func UpdateRepositoryClones(gc github.Client, db *gorm.DB) {
 func updateRepositoryViews(db *gorm.DB, repo GithubRepository, views int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	db.Model(&repo).Update("views", views)
+	updates := map[string]interface{}{
+		"views":            views,
+		"_views_processed": true,
+	}
+
+	db.Model(&repo).Updates(updates)
 	fmt.Printf("Done for repo: %s/%s\n", repo.Owner, repo.Name)
 }
 
